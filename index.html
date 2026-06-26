@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>MedLex V-index</title>
+<title>MedLex V-alpha</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-VDKQDNNYHS"></script>
+
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -1262,6 +1263,87 @@ body {
 [data-theme="dark"] .memo-judge-btn.forgot:hover { background: #b71c1c; }
 
 .mindmap-zoom-btn:hover { border-color: var(--accent2); color: var(--accent); }
+
+/* ════════════════════════════════════════
+   툴팁 투어
+════════════════════════════════════════ */
+#tour-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  pointer-events: none;
+}
+#tour-overlay.active { pointer-events: all; }
+
+/* 하이라이트 구멍 뚫린 배경 */
+#tour-backdrop {
+  position: fixed; inset: 0; z-index: 2001;
+  background: rgba(0,0,0,0.55);
+  transition: all 0.3s;
+}
+#tour-highlight {
+  position: fixed; z-index: 2002;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.55), 0 0 0 3px var(--accent2);
+  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  pointer-events: none;
+}
+
+/* 툴팁 말풍선 */
+#tour-tooltip {
+  position: fixed; z-index: 2003;
+  background: var(--surface);
+  border: 1.5px solid var(--accent2);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  max-width: 280px;
+  width: calc(100vw - 40px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  animation: tooltipPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes tooltipPop {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.tour-step-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1px;
+  color: var(--accent2); text-transform: uppercase; margin-bottom: 6px;
+}
+.tour-title {
+  font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px;
+}
+.tour-desc {
+  font-size: 13px; color: var(--text2); line-height: 1.6;
+}
+.tour-actions {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px; gap: 8px;
+}
+.tour-skip {
+  font-size: 12px; color: var(--text3); background: none; border: none;
+  cursor: pointer; padding: 4px; text-decoration: underline;
+}
+.tour-skip:hover { color: var(--text2); }
+.tour-btns { display: flex; gap: 8px; }
+.tour-btn-prev {
+  padding: 7px 14px; font-size: 12px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border); background: var(--surface2);
+  color: var(--text); cursor: pointer; font-family: inherit;
+}
+.tour-btn-next {
+  padding: 7px 18px; font-size: 13px; font-weight: 500;
+  border-radius: var(--radius-sm); border: none;
+  background: var(--accent); color: #fff; cursor: pointer;
+  font-family: inherit; transition: opacity 0.15s;
+}
+.tour-btn-next:hover { opacity: 0.88; }
+.tour-progress {
+  display: flex; gap: 4px; align-items: center;
+}
+.tour-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--border); transition: background 0.2s;
+}
+.tour-dot.active { background: var(--accent2); width: 14px; border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -1269,7 +1351,7 @@ body {
 
   <!-- ── 헤더 ── -->
   <header class="header">
-    <div class="header-logo">MedLex <span>V-index</span></div>
+    <div class="header-logo">MedLex <span>V-alpha</span></div>
     <!-- UX-12: 🗒️ 로그/기록 버튼 추가 (순서: 🗒️ → 💾 → ⚙️) -->
     <button class="icon-btn" id="logBtn" title="패치노트 및 피드백" style="position:relative">
       🗒️
@@ -1836,6 +1918,12 @@ body {
         <!-- 환경설정 탭 -->
         <div class="settings-tab-content" id="tab-prefs">
           <div class="pref-section">
+            <div class="pref-section-title">❓ 도움말</div>
+            <button class="settings-action-btn" style="width:100%;padding:12px;font-size:13px;" onclick="tourStart(true); closeSettings();">
+              🗺️ 기능 투어 다시 보기
+            </button>
+          </div>
+          <div class="pref-section">
             <div class="pref-section-title">🖥️ 화면 레이아웃</div>
             <div class="pref-btn-group">
               <button class="pref-btn" id="layoutMobileBtn" data-layout="mobile" onclick="setLayout('mobile')">
@@ -1941,32 +2029,32 @@ body {
   <div class="log-overlay" id="algoInfoOverlay">
     <div class="log-panel">
       <div class="log-header">
-        <div class="log-title">스마트 출제 알고리즘이란?</div>
+        <div class="log-title">🧠 스마트 출제 알고리즘이란?</div>
         <button class="log-close" id="algoInfoClose">✕</button>
       </div>
       <div class="log-body" style="padding:20px">
 
         <div style="background:var(--accent-light);border:1.5px solid var(--accent2);border-radius:12px;padding:14px 16px;margin-bottom:16px">
-          <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px">한 줄 요약</div>
+          <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px">✨ 한 줄 요약</div>
           <div style="font-size:13px;color:var(--text);line-height:1.6">
             "지금 가장 까먹을 것 같은 단어"와 "아직 한 번도 안 본 단어"를 먼저 출제해서, 공부 시간 대비 기억 효율을 최대화하는 방식이에요.
           </div>
         </div>
 
         <div style="margin-bottom:20px">
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">BKT — "내가 이 단어를 알고 있을 확률"</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">📊 BKT — "내가 이 단어를 알고 있을 확률"</div>
           <div style="font-size:13px;color:var(--text2);line-height:1.7">
             BKT(Bayesian Knowledge Tracing)는 매번 맞히거나 틀릴 때마다 "이 단어를 알 확률"을 0%~100% 사이로 계속 업데이트해요.<br><br>
             예를 들어 처음엔 50%로 시작해서, 맞히면 올라가고 틀리면 내려가는 식이에요.<br>
             단순히 맞힌 횟수를 세는 게 아니라, <b>얼마나 꾸준히 잘 맞히는지</b>를 봐요.
           </div>
           <div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--text3)">
-            95% 이상이 되면 해당 단어를 "마스터"로 간주해요. 마스터된 단어는 스마트 모드에서 후순위로 밀려나요.
+            💡 95% 이상이 되면 해당 단어를 "마스터"로 간주해요. 마스터된 단어는 스마트 모드에서 후순위로 밀려나요.
           </div>
         </div>
 
         <div style="margin-bottom:20px">
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">HALO — "얼마나 오래 기억할 수 있는가"</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">⏱️ HALO — "얼마나 오래 기억할 수 있는가"</div>
           <div style="font-size:13px;color:var(--text2);line-height:1.7">
             HALO(Half-life Adjusted Learning Order)는 <b>기억의 반감기</b>를 추적해요.<br><br>
             빠르게 답했다면 → 확실히 아는 것 → 반감기 길게 (오래 기억함)<br>
@@ -1974,12 +2062,12 @@ body {
             힌트를 쓰고 맞히면 반감기가 거의 늘어나지 않아요. 확실히 아는 게 아니니까요.
           </div>
           <div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--text3)">
-            반감기가 지날수록 기억 유지율이 떨어져요. 현재 기억 유지율은 단어 카드 뒷면에서 확인할 수 있어요.
+            💡 반감기가 지날수록 기억 유지율이 떨어져요. 현재 기억 유지율은 단어 카드 뒷면에서 확인할 수 있어요.
           </div>
         </div>
 
         <div style="margin-bottom:20px">
-          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">두 알고리즘이 합쳐지면?</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">🎯 두 알고리즘이 합쳐지면?</div>
           <div style="font-size:13px;color:var(--text2);line-height:1.7">
             스마트 모드는 BKT와 HALO를 합산해서 <b>각 단어에 우선순위 점수</b>를 매기고, 점수가 높은 순서대로 출제해요.
           </div>
@@ -2000,7 +2088,7 @@ body {
         </div>
 
         <div style="padding:14px 16px;background:var(--surface2);border-radius:12px;border:1.5px solid var(--border)">
-          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">마스터 기준이란?</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px">🏆 마스터 기준이란?</div>
           <div style="font-size:12px;color:var(--text2);line-height:1.6">
             BKT 확률이 <b>95% 이상</b>이 되면 마스터 단어로 표시돼요. 단어 카드의 숙련도 바가 가득 찬 상태예요.<br>
             마스터 단어도 퀴즈에 나오긴 하지만, 망각 위험 단어보다 나중에 출제돼요.
@@ -2039,9 +2127,9 @@ body {
         <div class="log-tab-content active" id="ltab-patch">
           <div class="patch-version-block">
             <div class="patch-version-header">
-              <span class="patch-version-num">V5</span>
+              <span class="patch-version-num">V-alpha</span>
               <span class="patch-version-date">2026</span>
-              <span class="patch-version-badge">최신</span>
+              <span class="patch-version-badge">알파 테스트 버전</span>
             </div>
             <div class="patch-item"><span class="patch-item-icon">🐛</span><div><b>[BUG-01]</b> 스트릭 계산 오류 수정 — 오늘 또는 어제 학습했으면 연속일 유지</div></div>
             <div class="patch-item"><span class="patch-item-icon">🐛</span><div><b>[BUG-02]</b> 객관식 오답 보기 품질 개선 — 단어 4개 미만 시 주관식 자동 전환, 다른 폴더 단어 우선 선택</div></div>
@@ -2070,6 +2158,7 @@ body {
     </div>
   </div>
 </div>
+
 
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -5451,6 +5540,204 @@ document.getElementById('feedbackSaveBtn').addEventListener('click', () => {
   showToast('기록이 저장됐어요 💾');
 });
 
+
+// ═══════════════════════════════════════════════════════════════
+// ── 툴팁 투어 (동적 생성 방식)
+// ═══════════════════════════════════════════════════════════════
+const TOUR_KEY = 'medlex_tour_done';
+
+const TOUR_STEPS = [
+  {
+    target: 'header-logo',
+    title: 'MedLex에 오신 걸 환영해요! 👋',
+    desc: '의학용어 학습에 특화된 단어장이에요. 간단한 안내를 시작할게요. (약 1분)',
+    position: 'bottom',
+  },
+  {
+    target: 'fabAdd',
+    title: '단어 추가 (+)',
+    desc: '오른쪽 아래 + 버튼으로 새 단어를 추가해요. 영어 의학용어를 입력하면 접사를 자동으로 분석해줘요.',
+    position: 'top',
+  },
+  {
+    target: 'searchInput',
+    title: '단어 검색 🔍',
+    desc: '영어, 한글 뜻, 발음 어느 쪽으로도 검색할 수 있어요. 슬래시(/) 키를 눌러도 바로 검색창이 활성화돼요.',
+    position: 'bottom',
+  },
+  {
+    target: 'navStudy',
+    title: '학습 탭 ✏️',
+    desc: '플래시카드, 4지선다, 빈칸채우기 세 가지 방식으로 학습해요. BKT 알고리즘이 취약한 단어를 우선 출제해요.',
+    position: 'top',
+  },
+  {
+    target: 'navStats',
+    title: '통계 탭 📊',
+    desc: '학습 현황, 정답률, 연속 학습일 등을 확인할 수 있어요.',
+    position: 'top',
+  },
+  {
+    target: 'navAnalyze',
+    title: '분석 탭 🔬',
+    desc: '의학 접사(어근·접두사·접미사)를 분석해줘요. cardiomegaly → cardio + megaly 이런 식으로 단어 구조를 이해할 수 있어요.',
+    position: 'top',
+  },
+  {
+    target: 'settingsBtn',
+    title: '설정 ⚙️',
+    desc: '다크모드, 단축키, 데이터 내보내기/가져오기 등을 여기서 설정해요.',
+    position: 'bottom',
+    isLast: true,
+  },
+];
+
+let _tourStep = 0;
+let _tourActive = false;
+let _tourEl = null;
+
+function tourStart(force = false) {
+  if (!force && localStorage.getItem(TOUR_KEY)) return;
+  if (_tourEl) { _tourEl.remove(); _tourEl = null; }
+
+  // DOM 동적 생성
+  _tourEl = document.createElement('div');
+  _tourEl.id = 'tour-overlay';
+  _tourEl.style.cssText = 'position:fixed;inset:0;z-index:9999;pointer-events:all;';
+  _tourEl.innerHTML = `
+    <div id="tour-highlight" style="position:fixed;z-index:10000;border-radius:10px;pointer-events:none;transition:all 0.35s cubic-bezier(0.4,0,0.2,1);"></div>
+    <div id="tour-tooltip" style="position:fixed;z-index:10001;background:var(--surface);border:1.5px solid var(--accent2);border-radius:var(--radius);padding:16px 18px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,0.18);animation:tooltipPop 0.25s cubic-bezier(0.34,1.56,0.64,1);">
+      <div id="tour-step-label" style="font-size:10px;font-weight:600;letter-spacing:1px;color:var(--accent2);text-transform:uppercase;margin-bottom:6px;"></div>
+      <div id="tour-title" style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;"></div>
+      <div id="tour-desc" style="font-size:13px;color:var(--text2);line-height:1.6;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px;">
+        <button id="tour-skip" style="font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;padding:4px;text-decoration:underline;font-family:inherit;">건너뛰기</button>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <div id="tour-progress" style="display:flex;gap:4px;align-items:center;"></div>
+          <div style="display:flex;gap:8px;">
+            <button id="tour-prev" style="padding:7px 14px;font-size:12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit;">이전</button>
+            <button id="tour-next" style="padding:7px 18px;font-size:13px;font-weight:500;border-radius:var(--radius-sm);border:none;background:var(--accent);color:#fff;cursor:pointer;font-family:inherit;">다음 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(_tourEl);
+
+  // 이벤트 바인딩 (생성 직후)
+  _tourEl.querySelector('#tour-next').addEventListener('click', () => {
+    if (_tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
+    _tourStep++; tourRender();
+  });
+  _tourEl.querySelector('#tour-prev').addEventListener('click', () => {
+    if (_tourStep <= 0) return;
+    _tourStep--; tourRender();
+  });
+  _tourEl.querySelector('#tour-skip').addEventListener('click', tourEnd);
+  _tourEl.addEventListener('click', e => {
+    if (e.target === _tourEl) {
+      if (_tourStep >= TOUR_STEPS.length - 1) { tourEnd(); return; }
+      _tourStep++; tourRender();
+    }
+  });
+
+  _tourStep = 0;
+  _tourActive = true;
+  tourRender();
+}
+
+function tourEnd() {
+  _tourActive = false;
+  localStorage.setItem(TOUR_KEY, '1');
+  if (_tourEl) {
+    _tourEl.style.transition = 'opacity 0.2s';
+    _tourEl.style.opacity = '0';
+    setTimeout(() => {
+      if (_tourEl) { _tourEl.remove(); _tourEl = null; }
+    }, 220);
+  }
+  showToast('투어 완료! 언제든 설정에서 다시 볼 수 있어요 😄');
+}
+
+function tourRender() {
+  if (!_tourEl) return;
+  const step = TOUR_STEPS[_tourStep];
+  const total = TOUR_STEPS.length;
+
+  _tourEl.querySelector('#tour-step-label').textContent = `${_tourStep + 1} / ${total}`;
+  _tourEl.querySelector('#tour-title').textContent = step.title;
+  _tourEl.querySelector('#tour-desc').textContent = step.desc;
+  _tourEl.querySelector('#tour-prev').style.display = _tourStep === 0 ? 'none' : '';
+  _tourEl.querySelector('#tour-next').textContent = step.isLast ? '완료 🎉' : '다음 →';
+
+  // 진행 점
+  const prog = _tourEl.querySelector('#tour-progress');
+  prog.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.style.cssText = `width:${i === _tourStep ? 14 : 5}px;height:5px;border-radius:${i === _tourStep ? 3 : 50}px;background:${i === _tourStep ? 'var(--accent2)' : 'var(--border)'};transition:all 0.2s;`;
+    prog.appendChild(dot);
+  }
+
+  // 하이라이트
+  const targetEl = document.getElementById(step.target);
+  const hl = _tourEl.querySelector('#tour-highlight');
+  if (targetEl) {
+    const rect = targetEl.getBoundingClientRect();
+    const pad = 6;
+    hl.style.left   = (rect.left - pad) + 'px';
+    hl.style.top    = (rect.top - pad) + 'px';
+    hl.style.width  = (rect.width + pad * 2) + 'px';
+    hl.style.height = (rect.height + pad * 2) + 'px';
+    hl.style.boxShadow = '0 0 0 9999px rgba(0,0,0,0.55), 0 0 0 3px var(--accent2)';
+    tourPositionTooltip(rect, step.position);
+  } else {
+    hl.style.boxShadow = '0 0 0 9999px rgba(0,0,0,0.55)';
+    tourPositionTooltip(null, 'center');
+  }
+}
+
+function tourPositionTooltip(rect, position) {
+  if (!_tourEl) return;
+  const tip = _tourEl.querySelector('#tour-tooltip');
+  const tipH = 180;
+  const tipW = Math.min(280, window.innerWidth - 40);
+  const margin = 16, pad = 6;
+  let top, left;
+
+  if (!rect || position === 'center') {
+    top  = window.innerHeight / 2 - tipH / 2;
+    left = window.innerWidth  / 2 - tipW / 2;
+  } else if (position === 'bottom') {
+    top  = rect.bottom + pad + margin;
+    left = Math.max(margin, Math.min(window.innerWidth - tipW - margin, rect.left + rect.width / 2 - tipW / 2));
+    if (top + tipH > window.innerHeight - margin) top = rect.top - pad - margin - tipH;
+  } else {
+    top  = rect.top - pad - margin - tipH;
+    left = Math.max(margin, Math.min(window.innerWidth - tipW - margin, rect.left + rect.width / 2 - tipW / 2));
+    if (top < margin) top = rect.bottom + pad + margin;
+  }
+
+  tip.style.top   = Math.max(margin, top) + 'px';
+  tip.style.left  = left + 'px';
+  tip.style.width = tipW + 'px';
+}
+
+// ESC / 화살표 키
+document.addEventListener('keydown', e => {
+  if (!_tourActive) return;
+  if (e.key === 'Escape') { tourEnd(); e.stopPropagation(); }
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (_tourStep >= TOUR_STEPS.length - 1) tourEnd();
+    else { _tourStep++; tourRender(); }
+  }
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (_tourStep > 0) { _tourStep--; tourRender(); }
+  }
+});
+
 // ═══════════════════════════════════════════════════════════════
 // ── 초기화
 // ═══════════════════════════════════════════════════════════════
@@ -5461,6 +5748,9 @@ renderFolderSelects();
 updateShortcutBadges();
 initAnalyzeTabs();
 initLogBadge(); // UX-12: 첫 실행 시 패치노트 뱃지 표시
+
+// 툴팁 투어 — 첫 방문자에게만 자동 실행
+setTimeout(() => tourStart(), 800);
 
 // 페이지 종료 전 디바운스 타이머 즉시 flush
 window.addEventListener('beforeunload', () => saveAll());

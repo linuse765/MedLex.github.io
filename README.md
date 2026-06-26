@@ -3,6 +3,8 @@
 의학 용어의 접두사와 접미사를 체계적으로 색인, 검색, 관리, 학습할 수 있도록 설계된
 데이터 분석 및 학습용 단일 파일 웹 애플리케이션입니다.
 
+(2026.04.25 ~ 2026.06.26)
+
 ---
 
 ## 바로 시작하기
@@ -83,7 +85,7 @@ https://linuse765.github.io/MedLex/
 
 MIT License
 Copyright (c) 2026 linuse765
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 Copyright (c) 2026 **linuse765**
